@@ -254,3 +254,15 @@ The system sends single-character commands to ESP32:
 
 **Status**: ✅ Ready for deployment
 
+SCREEN SHOTS
+<img width="1365" height="643" alt="Screenshot 2026-04-19 101517" src="https://github.com/user-attachments/assets/6bbf5ace-4b81-46d6-981c-c17814dc1d63" />
+
+<img width="1351" height="644" alt="appp" src="https://github.com/user-attachments/assets/c79eaf9b-53ad-4934-89c1-3318c7f021f0" />
+
+<img width="1365" height="645" alt="Screenshot 2026-04-19 101444" src="https://github.com/user-attachments/assets/9153c184-c18b-49ab-b20a-517d16c972ee" />
+circuit diagram
+<img width="996" height="558" alt="hardware connection" src="https://github.com/user-attachments/assets/78a8a9f3-cb86-44c2-ace1-fa948569cd7c" />
+
+
+
+
