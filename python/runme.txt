@@ -1,0 +1,15 @@
+1.connect hardware in ardunio ide dev mode bord and com8 port 
+2.run code uplode 
+verify rfid in serial monitor 
+3.press en in esp32
+4.in software 
+5.run cd "D:\sem-4\dbms\PPE_Project - WORKING\backend"    
+6.
+>> npm install
+>> npm start
+7.open http://localhost:5000/
+8.ibm
+9.uplode video
+wait
+alert if not press en in esp32
+done

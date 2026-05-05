@@ -1,0 +1,146 @@
+🚀 QUICK SETUP: LED + RFID + WEBSITE INTEGRATION
+================================================
+
+STEP 1: REBUILD FRONTEND (with LED display component)
+------------------------------------------------------
+cd frontend
+npm run build
+
+✅ This builds the production version with the new LEDStatusDisplay component
+
+
+STEP 2: START PYTHON BACKEND
+------------------------------
+cd python
+python app.py
+
+✅ Backend running on http://localhost:5000
+✅ Serving frontend from /frontend/dist
+✅ API endpoints ready
+✅ LED status tracking active
+
+
+STEP 3: OPEN WEBSITE IN BROWSER
+--------------------------------
+http://localhost:5000
+
+Login:
+  Username: admin
+  Password: admin123
+
+Then go to: "Live Monitoring" section (second tab)
+
+You should see:
+  ✓ LED Status Display (left side)
+  ✓ Upload Card (center top)
+  ✓ Video Panel (center/right)
+
+
+STEP 4: WHAT HAPPENS NEXT (Real-time flow)
+---------------------------------------------
+
+When you upload a video and a worker enters the zone:
+
+1. Frame shows person approaching from top
+2. Person crosses into zone (line 1)
+3. ESP32 RFID is waiting
+4. LED Status shows: 🟡 SCANNING RFID
+5. You scan an RFID card
+6. ESP32 receives UID → sends to Python
+7. Python checks PPE (helmet + vest)
+8. If SAFE (helmet YES + vest YES):
+   ✓ LED Status shows: 🟢 SAFE
+   ✓ Green LED lights up on ESP32
+   ✓ Worker record saved to database
+9. If UNSAFE (missing helmet or vest):
+   ✓ LED Status shows: 🔴 UNSAFE
+   ✓ Red LED + Buzzer on ESP32
+   ✓ Warning record saved to database
+10. Table updates automatically with new records
+11. After 2 seconds, all LEDs turn off
+
+
+REAL-TIME UPDATES
+
+The frontend polls `/api/led-status` every 500ms to show:
+  • Current status (idle, scanning, safe, unsafe)
+  • Last scanned worker UID
+  • Live LED emulation (Green/Red/Yellow indicators)
+  • Status animations and glow effects
+
+
+TABLE UPDATES
+
+The "Worker Entry Logs" tab shows all scanned workers:
+  • Worker ID (RFID UID)
+  • Helmet status (Yes/No)
+  • Vest status (Yes/No)
+  • Timestamp
+
+
+TESTING CHECKLIST
+===================
+
+✓ Backend running: python app.py
+✓ Website loads: http://localhost:5000
+✓ Login works: admin / admin123
+✓ Live Monitoring tab shows LED display
+✓ Upload video file
+✓ Person enters zone → LED shows 🟡 SCANNING RFID
+✓ Scan RFID card → LED shows 🟢 SAFE or 🔴 UNSAFE
+✓ Green LED/Buzzer active on ESP32
+✓ Worker record appears in table
+✓ Repeat with different workers
+
+
+ENVIRONMENT VARIABLES
+
+Development (.env):
+  VITE_API_BASE_URL=http://localhost:5000
+
+Production (.env.production):
+  VITE_API_BASE_URL=
+  (empty = uses relative URLs = same server)
+
+
+TROUBLESHOOTING
+
+1. LED not showing in browser?
+   → Check backend is running
+   → Check browser console for errors
+   → Rebuild frontend: npm run build
+
+2. No worker records in table?
+   → Check video uploaded successfully
+   → Check person actually entered zone area
+   → Check RFID card scanned (look for UID in ESP32 serial)
+
+3. ESP32 not responding?
+   → Check COM port in app.py (default: COM4)
+   → Check serial connection at 115200 baud
+   → Verify USB cable connected
+
+4. Worker not detected?
+   → Check YOLO model loaded (check console for "Loading model...")
+   → Ensure video has clear person walking into zone
+   → Check zone lines at 40% and 60% of video height
+
+
+API ENDPOINTS
+
+GET /api/led-status
+  → Returns current LED status for real-time display
+
+POST /api/process-video
+  → Upload video for processing
+
+GET /api/workers
+  → Get all worker records
+
+GET /api/status
+  → Get summary (total, safe, unsafe counts)
+
+
+===================================================
+Ready to go! Start backend and open browser 🚀
+===================================================

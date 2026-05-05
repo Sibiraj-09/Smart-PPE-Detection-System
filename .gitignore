@@ -1,0 +1,44 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+node_modules/
+*.swp
+*.swo
+*~
+.DS_Store
+.vscode/
+.idea/
+*.tmp
+*.bak
+videos/
+*.mp4
+*.avi
+*.mov
+*.mkv
+PPE Detection System-v2/runs/
+PPE Detection System-v2/weights/*.pt
+!PPE Detection System-v2/weights/best.pt  # Keep only best.pt if small
+backend/uploads/
+backend/output/
+*.db
+ppe.db
+ppe2.db

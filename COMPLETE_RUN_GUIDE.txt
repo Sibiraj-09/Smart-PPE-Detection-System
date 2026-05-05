@@ -1,0 +1,490 @@
+════════════════════════════════════════════════════════════════════════════════
+   PPE DETECTION & ALERT SYSTEM - COMPLETE RUN GUIDE
+════════════════════════════════════════════════════════════════════════════════
+
+🎯 OBJECTIVE
+────────────────────────────────────────────────────────────────────────────────
+Complete end-to-end PPE detection system with:
+• React frontend dashboard
+• Python Flask backend with YOLO detection
+• RFID scanning via ESP32
+• Hardware alerts (Red/Green LED + Buzzer)
+• SQLite database storage
+
+════════════════════════════════════════════════════════════════════════════════
+PHASE 1: HARDWARE & ESP32 SETUP
+════════════════════════════════════════════════════════════════════════════════
+
+📋 VERIFY HARDWARE CONNECTIONS
+────────────────────────────────────────────────────────────────────────────────
+
+Check these connections on your breadboard:
+
+Power Supply:
+  ✓ ESP32 3V3 → Breadboard RED power line
+  ✓ ESP32 GND → Breadboard BLUE ground line
+  ✓ ALL components use SAME RED and BLUE lines
+
+RFID Module (MFRC522):
+  ┌─────────────┬──────────┐
+  │ RFID Pin    │ ESP32    │
+  ├─────────────┼──────────┤
+  │ SDA         │ D5       │
+  │ SCK         │ D18      │
+  │ MOSI        │ D23      │
+  │ MISO        │ D19      │
+  │ RST         │ D22      │
+  │ VCC         │ 3.3V     │
+  │ GND         │ GND      │
+  └─────────────┴──────────┘
+
+Red LED:
+  Long leg (positive) → D12
+  Short leg (negative) → Resistor (220Ω) → GND
+
+Green LED:
+  Long leg (positive) → D14
+  Short leg (negative) → Resistor (220Ω) → GND
+
+Buzzer:
+  Positive (longer pin) → D4
+  Negative (shorter pin) → GND
+
+────────────────────────────────────────────────────────────────────────────────
+
+🔌 UPLOAD FIRMWARE TO ESP32
+────────────────────────────────────────────────────────────────────────────────
+
+1. Install Arduino IDE:
+   Download: https://www.arduino.cc/en/software
+
+2. Install ESP32 Board Support:
+   • Tools → Board → Boards Manager
+   • Search: "esp32"
+   • Install: "ESP32 by Espressif Systems"
+
+3. Install MFRC522 Library:
+   • Sketch → Include Library → Manage Libraries
+   • Search: "MFRC522"
+   • Install: "MFRC522 by GithubCommunity"
+
+4. Open Firmware Code:
+   • File → Open
+   • Navigate to: esp32/esp32_rfid_led_buzzer.ino
+   • Open the file
+
+5. Configure Board:
+   • Tools → Board → ESP32
+   • Tools → Board: "ESP32 Dev Module"
+   • Tools → Port → Select your COM port (e.g., COM3, COM4)
+   • Tools → Upload Speed → 115200
+
+6. Compile and Upload:
+   • Sketch → Upload
+   • Wait for "Done uploading" message
+
+7. Verify Connection:
+   • Tools → Serial Monitor
+   • Speed: 115200 baud
+   • You should see:
+     "ESP32 RFID Reader + LED Control"
+     "Ready for RFID scanning..."
+   • Try scanning an RFID card
+   • Should print the UID (e.g., "A1B2C3D4")
+
+✓ Note the COM port for later (e.g., COM4)
+
+────────────────────────────────────────────────────────────────────────────────
+
+✅ HARDWARE READY
+Close Arduino IDE. Don't open Serial Monitor when running Python!
+
+════════════════════════════════════════════════════════════════════════════════
+PHASE 2: PYTHON BACKEND SETUP
+════════════════════════════════════════════════════════════════════════════════
+
+📦 INSTALL PYTHON DEPENDENCIES
+────────────────────────────────────────────────────────────────────────────────
+
+1. Open Command Prompt (Windows) or Terminal (Mac/Linux)
+
+2. Navigate to project folder:
+   cd h:\dbms\PPE_Project - WORKING
+
+3. Go to python folder:
+   cd python
+
+4. Install all dependencies:
+   pip install -r requirements.txt
+
+   This installs:
+   • Flask (web server)
+   • Flask-CORS (cross-origin)
+   • YOLOv8 (detection)
+   • OpenCV (video processing)
+   • PySerial (ESP32 communication)
+   • PyTorch (deep learning)
+
+   ⏱️ Takes 5-10 minutes depending on internet
+
+5. Verify installation:
+   python test.py
+
+   Should show:
+   ✓ Python 3.x
+   ✓ Flask
+   ✓ OpenCV
+   ✓ PySerial
+   ✓ YOLOv8 Model found
+   ✓ RFID reader connected on COM4 (if ESP32 plugged in)
+   ✓ Upload/output directories
+
+If any ✗ errors, fix before continuing.
+
+────────────────────────────────────────────────────────────────────────────────
+
+⚙️ CONFIGURE FOR YOUR SETUP
+────────────────────────────────────────────────────────────────────────────────
+
+Edit: python/app.py
+
+Line ~150: Update RFID COM port
+  # Change COM4 to your ESP32 port
+  rfid_reader = RFIDReader(port="COM4", baudrate=115200, timeout=1)
+
+Line ~170: Zone configuration (adjust for your camera view)
+  line1_y = int(height * 0.4)   # Entry line (40% from top)
+  line2_y = int(height * 0.6)   # Release line (60% from top)
+
+  Tip: If people enter from top half, keep 0.4-0.6
+       If they enter from bottom, use 0.6-0.8
+
+Save the file.
+
+════════════════════════════════════════════════════════════════════════════════
+PHASE 3: FRONTEND BUILD (Optional, for Production)
+════════════════════════════════════════════════════════════════════════════════
+
+📦 BUILD REACT FRONTEND
+────────────────────────────────────────────────────────────────────────────────
+
+Only do this if you want to serve frontend from backend on port 5000.
+
+1. Navigate to frontend folder:
+   cd frontend
+
+2. Build for production:
+   npm run build
+
+   Creates optimized build in: frontend/dist/
+
+3. Backend will serve this automatically when running python app.py
+
+✓ You can skip this for development (use dev server instead)
+
+════════════════════════════════════════════════════════════════════════════════
+PHASE 4: RUN THE COMPLETE SYSTEM
+════════════════════════════════════════════════════════════════════════════════
+
+🚀 START EVERYTHING
+────────────────────────────────────────────────────────────────────────────────
+
+STEP 1: Make sure ESP32 is plugged in
+  ✓ ESP32 connected via USB
+  ✓ Arduino Serial Monitor CLOSED (very important!)
+  ✓ Lights are blinking (power indicator)
+
+STEP 2: Start Python backend in first terminal
+  cd h:\dbms\PPE_Project - WORKING\python
+  python app.py
+
+  Wait for these messages:
+    ✓ YOLOv8 model loaded
+    ✓ RFID reader connected on COM4
+    Smart PPE Detection System running on http://0.0.0.0:5000
+
+STEP 3: Open browser in second window
+  http://localhost:5000
+
+STEP 4: Login to dashboard
+  Username: admin
+  Password: admin123
+
+✓ Success! You should see the PPE Detection Dashboard
+
+────────────────────────────────────────────────────────────────────────────────
+
+📹 TEST WITH VIDEO
+────────────────────────────────────────────────────────────────────────────────
+
+STEP 1: Navigate to "Live Monitoring" tab
+
+STEP 2: Click "Choose CCTV video"
+
+STEP 3: Select a video file from videos/ folder
+  Important: Filename must contain:
+    • "video1" → Gate1
+    • "video2" → Gate2
+    • "video3" → Gate3
+    • "video4" → Gate4
+    • "video5" → Gate5
+
+STEP 4: Click upload or wait for auto-processing
+
+STEP 5: Watch the console for:
+  Processing frame 1...
+  Processing frame 30...
+  ...
+  🔐 LOCKED: Worker XX entered zone
+  ⏳ Waiting for RFID scan... (Worker XX)
+
+STEP 6: When you see "Waiting for RFID scan", go to:
+  Terminal → Tools → Serial Monitor (or similar)
+  Scan your RFID card near the reader
+
+STEP 7: Watch Python console show:
+  ✓ RFID scanned: A1B2C3D4
+  ✓ Sent Green LED (SAFE) or Red LED + Buzzer (UNSAFE)
+
+STEP 8: Hardware responds:
+  🟢 Green LED lights up (if helmets + vests detected)
+  🔴 Red LED lights up + Buzzer sounds (if PPE missing)
+
+STEP 9: Check database:
+  • Go to "Worker Entry Logs" tab
+  • Should see new record with:
+    - Worker ID (from RFID scan)
+    - Helmet (YES/NO)
+    - Vest (YES/NO)
+    - Status (SAFE/UNSAFE)
+    - Time & Date
+
+════════════════════════════════════════════════════════════════════════════════
+PHASE 5: SYSTEM VERIFICATION CHECKLIST
+════════════════════════════════════════════════════════════════════════════════
+
+Before deploying to production, verify:
+
+✓ HARDWARE
+  ☐ ESP32 boots without errors
+  ☐ RFID reader scans cards successfully
+  ☐ Red LED lights up when commanded
+  ☐ Green LED lights up when commanded
+  ☐ Buzzer sounds when commanded
+  ☐ Serial communication at 115200 baud
+
+✓ BACKEND
+  ☐ Python app.py starts without errors
+  ☐ YOLO model loads successfully
+  ☐ Console shows "RFID reader connected"
+  ☐ API endpoints respond (GET /api/status)
+  ☐ Database file (ppe.db) created automatically
+
+✓ FRONTEND
+  ☐ Dashboard loads at http://localhost:5000
+  ☐ Login works (admin/admin123)
+  ☐ All tabs visible (Dashboard, Live Monitoring, Logs, etc.)
+  ☐ Video upload interface works
+
+✓ INTEGRATION
+  ☐ Can upload video
+  ☐ Detection runs and shows bounding boxes
+  ☐ Two zones visible on video
+  ☐ RFID scanning triggers database save
+  ☐ LED/Buzzer responds to PPE status
+  ☐ Worker records appear in "Logs" tab
+
+════════════════════════════════════════════════════════════════════════════════
+COMMON ISSUES & SOLUTIONS
+════════════════════════════════════════════════════════════════════════════════
+
+PROBLEM: "Serial port COM4 not found"
+SOLUTION:
+  1. Check Device Manager for actual COM port
+  2. Update app.py with correct port
+  3. Close Arduino Serial Monitor (it blocks Python)
+  4. Try different port: COM3, COM5, etc.
+
+────────────────────────────────────────────────────────────────────────────────
+
+PROBLEM: "RFID reader not connected" but hardware is plugged in
+SOLUTION:
+  1. Verify all breadboard connections
+  2. Check power lines (RED and BLUE) are connected to ALL components
+  3. Verify MFRC522 pinout matches esp32_rfid_led_buzzer.ino
+  4. Try re-uploading firmware to ESP32
+  5. Open Arduino Serial Monitor and scan RFID to test
+
+────────────────────────────────────────────────────────────────────────────────
+
+PROBLEM: "Port 5000 already in use"
+SOLUTION:
+  1. Kill Python process: taskkill /IM python.exe /F
+  2. Or change port in app.py: app.run(port=5001)
+  3. Or restart computer
+
+────────────────────────────────────────────────────────────────────────────────
+
+PROBLEM: Video upload fails
+SOLUTION:
+  1. Check file format: MP4, AVI, MOV, MKV, MPEG
+  2. Reduce file size (shouldn't exceed 500MB)
+  3. Try uploading smaller video first
+  4. Check backend/uploads folder has write permissions
+
+────────────────────────────────────────────────────────────────────────────────
+
+PROBLEM: "Model not found: best.pt"
+SOLUTION:
+  1. Verify file exists at:
+     PPE Detection System-v2/runs/detect/train/weights/best.pt
+  2. Check path in python/detection.py
+  3. Run: python test.py (it checks model location)
+
+────────────────────────────────────────────────────────────────────────────────
+
+PROBLEM: Processing very slow
+SOLUTION:
+  1. Use smaller video files for testing
+  2. Reduce resolution (1280x720 instead of 1920x1080)
+  3. Use GPU if available (modifying PyTorch setup)
+  4. Reduce YOLO confidence threshold in app.py (line ~95)
+
+════════════════════════════════════════════════════════════════════════════════
+DATABASE & DATA MANAGEMENT
+════════════════════════════════════════════════════════════════════════════════
+
+📊 VIEW DATABASE RECORDS
+────────────────────────────────────────────────────────────────────────────────
+
+Option 1: Use Dashboard
+  • Go to "Worker Entry Logs" tab
+  • See all scanned workers with times
+
+Option 2: Use SQL Client
+  • Download SQLite Studio: https://sqlitestudio.pl/
+  • Open ppe.db file in this folder
+  • View worker_ppe table
+
+Option 3: Use Command Line
+  python -m sqlite3 ppe.db
+  sqlite> SELECT * FROM worker_ppe;
+  sqlite> .exit
+
+────────────────────────────────────────────────────────────────────────────────
+
+🗑️ RESET DATABASE
+────────────────────────────────────────────────────────────────────────────────
+
+If you need to start fresh:
+  1. Stop Python app (Ctrl+C in terminal)
+  2. Delete ppe.db file
+  3. Run python app.py again
+  4. Database auto-creates on first upload
+
+════════════════════════════════════════════════════════════════════════════════
+PERFORMANCE OPTIMIZATION
+════════════════════════════════════════════════════════════════════════════════
+
+For faster processing:
+
+1. Reduce video resolution (1280x720 is good)
+2. Lower FPS if possible (24fps is fine for detection)
+3. Adjust YOLO confidence in app.py:
+   results = model.track(frame, conf=0.5)  # Lower = more detections
+4. Increase zone gap for faster locking:
+   line1_y = int(height * 0.35)
+   line2_y = int(height * 0.65)
+
+════════════════════════════════════════════════════════════════════════════════
+DEPLOYMENT CHECKLIST
+════════════════════════════════════════════════════════════════════════════════
+
+Before using in production environment:
+
+☐ Hardware fully tested and working
+☐ ESP32 firmware uploaded and functioning
+☐ Python dependencies installed
+☐ backend/uploads and backend/output folders created
+☐ YOLOv8 model verified at correct path
+☐ Frontend built: npm run build
+☐ Database cleared: delete ppe.db
+☐ App tested with several videos
+☐ RFID scanning tested with multiple cards
+☐ LED/Buzzer responses verified
+☐ Database records correct and complete
+☐ Console logs monitored for errors
+☐ System can handle video files up to 500MB
+
+════════════════════════════════════════════════════════════════════════════════
+FULL END-TO-END TEST SCENARIO
+════════════════════════════════════════════════════════════════════════════════
+
+1. START SYSTEM
+   • Ensure ESP32 connected
+   • python app.py
+   • Open http://localhost:5000
+   • Login: admin / admin123
+
+2. PREPARE TEST VIDEO
+   • Have a video file ready (e.g., video1.mp4)
+   • Place in videos/ folder or accessible location
+
+3. UPLOAD VIDEO
+   • Click "Choose CCTV video"
+   • Select test video
+   • Watch loading bar
+
+4. MONITOR PROCESSING
+   • Console shows "Processing frame X..."
+   • Zones visible on video preview
+
+5. WAIT FOR ZONE LOCK
+   • Console: "🔐 LOCKED: Worker XX entered zone"
+   • Console: "⏳ Waiting for RFID scan..."
+
+6. SCAN RFID CARD
+   • Using RFID reader connected to ESP32
+   • Hold card near reader
+   • Console should show RFID UID
+
+7. VERIFY ALERT
+   • If PPE complete → Green LED on
+   • If PPE incomplete → Red LED + Buzzer
+   • After 2 seconds → All turn off
+
+8. CHECK DATABASE
+   • Go to "Worker Entry Logs"
+   • New record should appear with:
+     - RFID UID scanned
+     - Helmet detection (YES/NO)
+     - Vest detection (YES/NO)
+     - Status (SAFE/UNSAFE)
+     - Gate (from video filename)
+     - Time & Date
+
+9. VERIFY OUTPUT VIDEO
+   • Go to "Live Monitoring" tab
+   • Processed video available
+   • Shows bounding boxes and annotations
+
+✅ If all steps work → System is functioning correctly!
+
+════════════════════════════════════════════════════════════════════════════════
+FINAL NOTES
+════════════════════════════════════════════════════════════════════════════════
+
+• Always keep the terminal running where Python app.py is started
+• Console logs are your debugging friend - monitor them!
+• Arduino Serial Monitor blocks ESP32 - always close it before running Python
+• Database is SQLite - it's a file (ppe.db) that can be backed up
+• If issues arise, restart everything: stop Python, plug out ESP32, start fresh
+
+For more help:
+• Check QUICK_REFERENCE.txt for common tasks
+• Check README.md for detailed documentation
+• Check console output for specific error messages
+
+════════════════════════════════════════════════════════════════════════════════
+✅ YOU'RE ALL SET! The system is ready for deployment.
+════════════════════════════════════════════════════════════════════════════════

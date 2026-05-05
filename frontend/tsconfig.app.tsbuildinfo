@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/types.ts","./src/components/ledstatusdisplay.tsx","./src/components/statuscards.tsx","./src/components/uploadcard.tsx","./src/components/videopanel.tsx","./src/components/workerstable.tsx"],"version":"5.9.3"}

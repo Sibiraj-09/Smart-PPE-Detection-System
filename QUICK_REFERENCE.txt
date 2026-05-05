@@ -1,0 +1,170 @@
+════════════════════════════════════════════════════════════════════════════
+   Smart PPE Detection & Alert System - Quick Reference
+════════════════════════════════════════════════════════════════════════════
+
+📋 SYSTEM FLOW
+─────────────────────────────────────────────────────────────────────────────
+  1. Upload video via dashboard
+  2. YOLO detects people, helmets, vests frame-by-frame
+  3. Person crosses two-line zone → LOCKED
+  4. System waits for RFID scan (ESP32 reads UID)
+  5. Decision: SAFE (helmet+vest) or UNSAFE (missing PPE)
+  6. LED signal sent to ESP32:
+     • GREEN (G) = SAFE
+     • RED + BUZZER (R) = UNSAFE
+     • OFF (O) = after 2 seconds
+  7. Record saved to database with timestamp and gate
+
+🚀 QUICK START
+─────────────────────────────────────────────────────────────────────────────
+
+1. Connect ESP32 via USB
+
+2. Install dependencies:
+   cd python
+   pip install -r requirements.txt
+
+3. Test hardware:
+   python test.py
+
+4. Run system:
+   python app.py
+
+5. Open dashboard:
+   http://localhost:5000
+
+📺 UPLOAD VIDEO
+─────────────────────────────────────────────────────────────────────────────
+
+Dashboard → Live Monitoring → Choose CCTV video
+
+Supported formats: MP4, AVI, MOV, MKV, MPEG
+
+Video filename → Gate assignment:
+  • video1.mp4 → Gate1
+  • video2.mp4 → Gate2
+  • video3.mp4 → Gate3
+  etc.
+
+⚙️ CONFIGURATION
+─────────────────────────────────────────────────────────────────────────────
+
+File: python/app.py
+
+Change RFID COM port:
+  rfid_reader = RFIDReader(port="COM4")  # Change COM4 → COMX
+
+Change two-line zone:
+  line1_y = int(height * 0.4)   # Adjust 0.4 (40% from top)
+  line2_y = int(height * 0.6)   # Adjust 0.6 (60% from top)
+
+Change RFID timeout:
+  uid = rfid_reader.wait_for_rfid(timeout=5)  # seconds
+
+🔍 DATABASE RECORDS
+─────────────────────────────────────────────────────────────────────────────
+
+Table: worker_ppe
+
+Columns:
+  • worker_id  → RFID UID (from ESP32)
+  • helmet     → YES / NO (detected by YOLO)
+  • vest       → YES / NO (detected by YOLO)
+  • status     → SAFE / UNSAFE
+  • gate       → Gate1-5 (from video filename)
+  • time       → HH:MM:SS (scan timestamp)
+  • date       → YYYY-MM-DD (scan date)
+
+📊 API ENDPOINTS
+─────────────────────────────────────────────────────────────────────────────
+
+POST /api/process-video
+  Input:  video file (multipart)
+  Output: { "videoUrl": "/output/processed-*.mp4" }
+
+GET /api/workers
+  Output: [
+    {
+      "worker_id": "UID",
+      "helmet": "YES",
+      "vest": "YES",
+      "time": "14:30:45"
+    },
+    ...
+  ]
+
+GET /api/status
+  Output: {
+    "totalWorkers": 5,
+    "safeWorkers": 4,
+    "unsafeWorkers": 1
+  }
+
+🔴 TROUBLESHOOTING
+─────────────────────────────────────────────────────────────────────────────
+
+Problem                    Solution
+─────────────────────────────────────────────────────────────────────────────
+RFID not detected         • Check COM port in Device Manager
+                          • Close Arduino Serial Monitor
+                          • Verify ESP32 is plugged in
+                          • Test with: python test.py
+
+Video upload fails        • Check file format (MP4, AVI, MOV, etc.)
+                          • Check file size (shouldn't exceed 500MB)
+                          • Verify backend/uploads folder exists
+
+Model not found           • Check PPE Detection System-v2/runs/.../best.pt
+                          • Run: python/test.py
+
+Port 5000 already in use  • Kill process: taskkill /IM python.exe /F
+                          • Or change PORT in app.py
+
+Slow processing           • Reduce video resolution
+                          • Lower FPS before upload
+                          • Use GPU (if available)
+
+💡 FILE LOCATIONS
+─────────────────────────────────────────────────────────────────────────────
+
+Main Backend:        python/app.py
+Detection Logic:     python/detection.py
+RFID Control:        python/rfid.py
+Database:            python/db.py
+
+Video Uploads:       backend/uploads/
+Processed Videos:    backend/output/
+Database File:       ppe.db (auto-created)
+
+Frontend:            frontend/src/
+Dashboard:           http://localhost:5000
+
+🛠️ MAINTENANCE
+─────────────────────────────────────────────────────────────────────────────
+
+Clear database records:
+  • Delete ppe.db (will auto-recreate on next upload)
+
+Reset state:
+  • Close app
+  • Delete ppe.db
+  • Disconnect/reconnect ESP32
+  • Restart app.py
+
+View raw data:
+  • Use SQLite client to open ppe.db
+  • Or: python -m sqlite3 ppe.db "SELECT * FROM worker_ppe;"
+
+📝 COMMON PARAMETERS
+─────────────────────────────────────────────────────────────────────────────
+
+YOLO Confidence:     conf=0.5      (0-1, lower = more detections)
+YOLO IoU:            iou=0.5       (0-1, threshold for overlap)
+Zone Line 1:         40% height    (adjust for entry point)
+Zone Line 2:         60% height    (adjust for lock release)
+RFID Timeout:        5 seconds     (time to wait for scan)
+Signal Duration:     2 seconds     (G or R before sending O)
+
+════════════════════════════════════════════════════════════════════════════
+STATUS: ✅ Ready for deployment
+════════════════════════════════════════════════════════════════════════════

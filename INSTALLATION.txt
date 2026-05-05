@@ -1,0 +1,255 @@
+════════════════════════════════════════════════════════════════════════════
+   INSTALLATION GUIDE - PPE Detection & Alert System
+════════════════════════════════════════════════════════════════════════════
+
+📦 PREREQUISITES
+─────────────────────────────────────────────────────────────────────────────
+
+✓ Windows 10+ or Linux
+✓ Python 3.8 or higher
+✓ ESP32 microcontroller with RFID reader
+✓ USB cable (for ESP32 connection)
+✓ Generated YOLOv8 model (best.pt)
+
+─────────────────────────────────────────────────────────────────────────────
+
+🔧 STEP 1: VERIFY PYTHON INSTALLATION
+─────────────────────────────────────────────────────────────────────────────
+
+Open Command Prompt / Terminal and run:
+
+  python --version
+
+Should show Python 3.8 or higher. If not installed:
+  → Download from: https://www.python.org/downloads/
+  → Check: "Add Python to PATH" during installation
+
+─────────────────────────────────────────────────────────────────────────────
+
+🔌 STEP 2: PREPARE ESP32
+─────────────────────────────────────────────────────────────────────────────
+
+1. Upload RFID firmware to ESP32 using Arduino IDE
+   - File → Examples → Sketchbook → Look for RFID reader sketch
+   - Or use provided firmware file if available
+
+2. Connect ESP32 via USB to computer
+
+3. Note the COM port:
+   Windows:  Device Manager → COM ports section
+   Linux:    ls /dev/ttyUSB*
+
+4. Close any Serial Monitor windows (Arduino IDE, putty, etc.)
+
+5. Remember the COM port (e.g., COM4, COM3)
+
+─────────────────────────────────────────────────────────────────────────────
+
+📁 STEP 3: VERIFY PROJECT STRUCTURE
+─────────────────────────────────────────────────────────────────────────────
+
+Ensure these files exist:
+
+PPE_Project - WORKING/
+  ├── python/               ← Python backend
+  │   ├── app.py            ← MAIN FILE
+  │   ├── detection.py      ← YOLO logic
+  │   ├── rfid.py           ← RFID control
+  │   ├── db.py             ← Database
+  │   ├── requirements.txt  ← Dependencies
+  │   └── test.py           ← Test script
+  ├── backend/
+  │   ├── uploads/          ← Will store uploads
+  │   └── output/           ← Will store processed videos
+  ├── frontend/dist/        ← Built dashboard (from: npm run build)
+  ├── PPE Detection System-v2/
+  │   └── runs/detect/train/weights/best.pt  ← YOLOv8 MODEL
+  └── ppe.db                ← Database (auto-created)
+
+If missing any folders:
+  mkdir backend\uploads
+  mkdir backend\output
+
+─────────────────────────────────────────────────────────────────────────────
+
+📥 STEP 4: INSTALL PYTHON DEPENDENCIES
+─────────────────────────────────────────────────────────────────────────────
+
+Option A: Using setup script (Windows)
+  cd python
+  setup.bat
+
+Option B: Manual installation
+  cd python
+  pip install -r requirements.txt
+
+This will install:
+  • Flask (web server)
+  • Flask-CORS (cross-origin requests)
+  • YOLOv8 (object detection)
+  • OpenCV (video processing)
+  • PySerial (ESP32 communication)
+  • PyTorch (deep learning)
+
+Installation takes ~5-10 minutes depending on internet speed.
+
+─────────────────────────────────────────────────────────────────────────────
+
+✅ STEP 5: VERIFY INSTALLATION
+─────────────────────────────────────────────────────────────────────────────
+
+Run test script:
+
+  cd python
+  python test.py
+
+Expected output should show:
+  ✓ Python version
+  ✓ Flask
+  ✓ Flask-CORS
+  ✓ YOLOv8
+  ✓ OpenCV
+  ✓ PySerial
+  ✓ PyTorch
+  ✓ Model found
+  ✓ RFID reader connected (if ESP32 plugged in)
+  ✓ Upload/output directories
+
+Fix any ✗ errors before proceeding.
+
+─────────────────────────────────────────────────────────────────────────────
+
+⚙️ STEP 6: CONFIGURE SYSTEM
+─────────────────────────────────────────────────────────────────────────────
+
+Edit: python/app.py
+
+Find these lines and update as needed:
+
+  # RFID COM port (change COM4 if using different port)
+  rfid_reader = RFIDReader(port="COM4", baudrate=115200, timeout=1)
+
+  # Two-line zone (adjust percentages for your camera angle)
+  line1_y = int(height * 0.4)   # 40% from top
+  line2_y = int(height * 0.6)   # 60% from top
+
+  # RFID timeout in seconds
+  uid = rfid_reader.wait_for_rfid(timeout=5)
+
+Save changes.
+
+─────────────────────────────────────────────────────────────────────────────
+
+🚀 STEP 7: START THE SYSTEM
+─────────────────────────────────────────────────────────────────────────────
+
+1. Ensure ESP32 is connected via USB
+
+2. Run the backend:
+
+     cd python
+     python app.py
+
+   Expected output:
+     ✓ YOLOv8 model loaded
+     ✓ RFID reader connected on COM4
+     Smart PPE Detection System running on http://0.0.0.0:5000
+
+3. Open browser:
+     http://localhost:5000
+
+4. You should see the login screen with the PPE detection dashboard
+
+─────────────────────────────────────────────────────────────────────────────
+
+📹 STEP 8: TEST WITH VIDEO
+─────────────────────────────────────────────────────────────────────────────
+
+1. Prepare test video in videos/ folder
+
+2. Login to dashboard (default: admin / admin123)
+
+3. Navigate to: Live Monitoring tab
+
+4. Click: Choose CCTV video
+
+5. Select video file (must contain "video1", "video2", etc. in name)
+
+6. System will:
+   - Process frame-by-frame with YOLO
+   - Detect people, helmets, vests
+   - Wait for RFID scan when person enters zone
+   - Send signal to ESP32 (Green or Red LED)
+   - Save record to database
+   - Display processed video
+
+7. Check Workers tab → should see RFID UIDs with timestamps
+
+─────────────────────────────────────────────────────────────────────────────
+
+🐛 TROUBLESHOOTING
+─────────────────────────────────────────────────────────────────────────────
+
+Issue: "Module not found: flask"
+  Solution: Run: pip install Flask Flask-CORS
+
+Issue: "Cannot find model: best.pt"
+  Solution: Verify path in app.py matches your actual model location
+
+Issue: "RFID reader not connected"
+  Solution: 
+    1. Check Device Manager for COM port
+    2. Close Arduino Serial Monitor
+    3. Verify ESP32 has RFID firmware uploaded
+    4. Try different COM port in app.py
+
+Issue: "Port 5000 already in use"
+  Solution: 
+    1. Close other instances: taskkill /IM python.exe /F
+    2. Or change port in app.py: app.run(port=5001)
+
+Issue: "Video upload fails"
+  Solution:
+    1. Check file format (mp4, avi, mov, mkv, mpeg)
+    2. Check file size (shouldn't exceed 500MB)
+    3. Try smaller resolution/file
+
+Issue: Processing is very slow
+  Solution:
+    1. Use smaller video files
+    2. Reduce video resolution
+    3. Use GPU if available (PyTorch with CUDA)
+
+─────────────────────────────────────────────────────────────────────────────
+
+💾 DATABASE BACKUP
+─────────────────────────────────────────────────────────────────────────────
+
+Database file: ppe.db
+
+To backup:
+  • Copy ppe.db to safe location
+  • Restore by copying back before running app.py
+
+To export records:
+  python -c "import sqlite3; conn = sqlite3.connect('ppe.db'); 
+             for row in conn.execute('SELECT * FROM worker_ppe'): 
+               print(row)"
+
+To reset database:
+  • Delete ppe.db (will auto-recreate on next upload)
+
+─────────────────────────────────────────────────────────────────────────────
+
+🎓 NEXT STEPS
+─────────────────────────────────────────────────────────────────────────────
+
+1. Review QUICK_REFERENCE.txt for common tasks
+2. Read README.md for detailed documentation
+3. Check logs for any runtime errors
+4. Calibrate zone lines for your specific setup
+5. Test with multiple videos to verify accuracy
+
+════════════════════════════════════════════════════════════════════════════
+✅ Installation complete! System ready for deployment.
+════════════════════════════════════════════════════════════════════════════

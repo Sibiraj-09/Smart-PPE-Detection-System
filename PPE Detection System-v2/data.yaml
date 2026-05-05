@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 3
+names: ['Vest', 'Worker', 'helmet']
+
+roboflow:
+  workspace: ppe-workspace-kdtn1
+  project: ppe-detection-system-ut3fu
+  version: 2
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/ppe-workspace-kdtn1/ppe-detection-system-ut3fu/dataset/2
